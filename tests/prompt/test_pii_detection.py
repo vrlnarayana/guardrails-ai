@@ -42,12 +42,14 @@ def test_run_guard_no_pii(monkeypatch):
         raw="GDPR protects personal data in the EU.",
     )
     with patch("demos.prompt.pii_detection.Guard") as MockGuard, \
-         patch("demos.prompt.pii_detection.DetectPII"):
+         patch("demos.prompt.pii_detection.DetectPII"), \
+         patch("demos.prompt.pii_detection.configure_openai") as mock_configure:
         MockGuard.return_value = mock_guard
         result = module.run_guard("sk-test", "What is GDPR?", "gpt-4o-mini")
 
     assert result["passed"] is True
     assert result["error"] is None
+    mock_configure.assert_called_once_with("sk-test")
 
 
 def test_run_guard_validator_not_installed(monkeypatch):

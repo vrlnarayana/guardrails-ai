@@ -19,9 +19,11 @@ streamlit run app.py
 ```
 
 ## Running Tests
+
+Requires Python 3.11+ (`guardrails-ai` does not support Python 3.7):
 ```bash
-pytest tests/ -v
-pytest tests/prompt/test_pii_detection.py -v   # single test file
+python3.11 -m pytest tests/ -v
+python3.11 -m pytest tests/prompt/test_pii_detection.py -v   # single test file
 ```
 
 ## Architecture
