@@ -40,3 +40,12 @@ def test_injection_in_query_blocked(monkeypatch):
 
     assert result["blocked"] is True
     assert len(result["steps"]) == 1
+
+
+def test_run_agent_validators_missing(monkeypatch):
+    monkeypatch.setattr(module, "_INJECTION_AVAILABLE", False)
+    monkeypatch.setattr(module, "_PROVENANCE_AVAILABLE", False)
+    with patch("demos.agent.research_agent.configure_openai"):
+        result = module.run_agent("sk-test", "Summarise photosynthesis", "gpt-4o-mini")
+    assert result["blocked"] is True
+    assert result["steps"][0]["install_hint"] is not None

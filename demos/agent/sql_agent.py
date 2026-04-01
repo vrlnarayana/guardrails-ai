@@ -23,6 +23,34 @@ SQL_INSTALL = "guardrails hub install hub://guardrails/valid_sql"
 
 DEFAULT_QUERY = "Show me all orders placed by john.smith@company.com in the last 30 days"
 
+GUARD_CODE = """\
+from guardrails.hub import DetectPII, ValidSQL
+from guardrails import Guard
+
+# Input guard — redact PII before sending to LLM (on_fail="fix" sanitises, not blocks)
+pii_guard = Guard().use(DetectPII(
+    pii_entities=["EMAIL_ADDRESS", "PERSON", "PHONE_NUMBER"],
+    on_fail="fix",
+))
+pii_result = pii_guard(
+    model="gpt-4o-mini",
+    messages=[{"role": "user", "content": user_query}],
+)
+sanitised_query = pii_result.validated_output  # PII redacted, pipeline continues
+
+# Output guard — validate the generated SQL
+sql_guard = Guard().use(ValidSQL(on_fail="exception"))
+sql_result = sql_guard(
+    model="gpt-4o-mini",
+    messages=[
+        {"role": "system", "content": sql_system_prompt},
+        {"role": "user", "content": sanitised_query},
+    ],
+)
+# sql_result.validation_passed → True/False
+# sql_result.validated_output  → valid SQL string
+"""
+
 SQL_SYSTEM_PROMPT = (
     "You are a SQL assistant. Convert the user's natural language query into a valid "
     "PostgreSQL SELECT statement. Respond with ONLY the SQL query, no explanation. "
@@ -73,8 +101,7 @@ def run_agent(api_key: str, query: str, model: str) -> AgentResult:
         install_hint=None,
     ))
 
-    if not step1_passed:
-        return AgentResult(steps=steps, final_output="Query blocked: contained PII.", blocked=True)
+    # on_fail="fix" means PII is redacted, not blocked — pipeline continues with sanitised_query
 
     # ── Step 2: Output guard (SQL validation) ────────────────────────────────
     if not _SQL_AVAILABLE:
@@ -140,6 +167,8 @@ def render(api_key: str, model: str) -> None:
         )
         st.markdown("**Schema:** `orders(id, customer_id, status, created_at)`, `customers(id, email, name)`")
         run = st.button("▶ Run Agent", key="sql_run", type="primary")
+        with st.expander("📋 Guard setup code"):
+            st.code(GUARD_CODE, language="python")
 
     with col_out:
         if not api_key:

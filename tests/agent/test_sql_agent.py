@@ -28,7 +28,8 @@ def test_valid_sql_passes_all_steps(monkeypatch):
     mock_configure.assert_called_once_with("sk-test")
 
 
-def test_pii_in_query_blocked(monkeypatch):
+def test_pii_detected_sanitises_and_continues(monkeypatch):
+    """on_fail='fix' means PII is redacted and the pipeline continues — not blocked at step 1."""
     monkeypatch.setattr(module, "_PII_AVAILABLE", True)
     monkeypatch.setattr(module, "_SQL_AVAILABLE", True)
     with patch("demos.agent.sql_agent.Guard") as MockGuard, \
@@ -38,8 +39,10 @@ def test_pii_in_query_blocked(monkeypatch):
         MockGuard.return_value = _mock_guard(False, "")
         result = module.run_agent("sk-test", "Show orders for john@example.com", "gpt-4o-mini")
 
-    assert result["blocked"] is True
-    assert len(result["steps"]) == 1
+    # Pipeline must NOT be blocked at step 1 — it continues with sanitised query
+    assert len(result["steps"]) == 2
+    assert result["steps"][0]["passed"] is False  # PII was detected (step shows warning)
+    assert result["steps"][0]["install_hint"] is None  # not a missing-validator error
 
 
 def test_validators_missing(monkeypatch):

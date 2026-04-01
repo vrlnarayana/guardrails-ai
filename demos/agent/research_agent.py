@@ -21,6 +21,35 @@ except ImportError:
 INJECTION_INSTALL = "guardrails hub install hub://sainatha/prompt_injection_detector"
 PROVENANCE_INSTALL = "guardrails hub install hub://guardrails/provenance_llm"
 
+GUARD_CODE = """\
+from guardrails.hub import PromptInjectionDetector, ProvenanceLLM
+from guardrails import Guard
+
+# Input guard — block adversarial queries
+input_guard = Guard().use(PromptInjectionDetector(on_fail="exception"), on="prompt")
+input_result = input_guard(
+    model="gpt-4o-mini",
+    messages=[{"role": "user", "content": user_query}],
+)
+
+# Output guard — ensure summary is grounded in source document
+output_guard = Guard().use(ProvenanceLLM(
+    validation_method="full",
+    llm_callable="gpt-4o-mini",
+    on_fail="exception",
+))
+output_result = output_guard(
+    model="gpt-4o-mini",
+    messages=[
+        {"role": "system", "content": f"Summarise based only on this source:\\n{source_doc}"},
+        {"role": "user", "content": user_query},
+    ],
+    metadata={"sources": [source_doc]},
+)
+# output_result.validation_passed → True/False
+# output_result.validated_output  → grounded summary
+"""
+
 SOURCE_DOC = (
     "Photosynthesis is the process by which green plants, algae, and some bacteria convert "
     "light energy (usually from the sun) into chemical energy stored as glucose. "
@@ -143,6 +172,8 @@ def render(api_key: str, model: str) -> None:
             help="The query contains a hallucination bait ('requires darkness'). Try removing it.",
         )
         run = st.button("▶ Run Agent", key="research_run", type="primary")
+        with st.expander("📋 Guard setup code"):
+            st.code(GUARD_CODE, language="python")
 
     with col_out:
         if not api_key:

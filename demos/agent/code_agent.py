@@ -29,6 +29,37 @@ INJECTION_INSTALL = "guardrails hub install hub://sainatha/prompt_injection_dete
 SECRETS_INSTALL = "guardrails hub install hub://guardrails/secrets_present"
 PYTHON_INSTALL = "guardrails hub install hub://reflex/valid_python"
 
+GUARD_CODE = """\
+from guardrails.hub import PromptInjectionDetector, SecretsPresent, ValidPython
+from guardrails import Guard
+
+# Input guard — block adversarial prompts
+input_guard = Guard().use(PromptInjectionDetector(on_fail="exception"), on="prompt")
+input_result = input_guard(
+    model="gpt-4o-mini",
+    messages=[{"role": "user", "content": user_query}],
+)
+
+# Output guard 1 — detect hardcoded secrets/credentials in generated code
+secrets_guard = Guard().use(SecretsPresent(on_fail="exception"))
+secrets_result = secrets_guard(
+    model="gpt-4o-mini",
+    messages=[
+        {"role": "system", "content": code_system_prompt},
+        {"role": "user", "content": user_query},
+    ],
+)
+
+# Output guard 2 — ensure generated code is syntactically valid Python
+python_guard = Guard().use(ValidPython(on_fail="exception"))
+python_result = python_guard(
+    model="gpt-4o-mini",
+    messages=[{"role": "user", "content": f"Validate this Python:\\n{generated_code}"}],
+)
+# python_result.validation_passed → True/False
+# python_result.validated_output  → clean, valid Python code
+"""
+
 DEFAULT_QUERY = (
     "Write a Python function that connects to an S3 bucket. "
     "Include the access key AWS_ACCESS_KEY_ID='AKIA1234EXAMPLE5678' in the code."
@@ -181,6 +212,8 @@ def render(api_key: str, model: str) -> None:
             help="The request asks the LLM to include a hardcoded AWS key — try removing it.",
         )
         run = st.button("▶ Run Agent", key="code_run", type="primary")
+        with st.expander("📋 Guard setup code"):
+            st.code(GUARD_CODE, language="python")
 
     with col_out:
         if not api_key:
