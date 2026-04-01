@@ -62,14 +62,9 @@ def run_guard(api_key: str, prompt: str, model: str) -> GuardResult:
             install_hint=None,
         )
     except Exception as exc:
-        # PromptInjectionDetector raises on injection when on_fail="exception"
-        is_injection = "injection" in str(exc).lower() or "validation" in str(exc).lower()
         return GuardResult(
-            passed=False,
-            output="",
-            raw_output="",
-            error=str(exc) if not is_injection else None,
-            install_hint=None,
+            passed=False, output="", raw_output="",
+            error=str(exc), install_hint=None,
         )
 
 

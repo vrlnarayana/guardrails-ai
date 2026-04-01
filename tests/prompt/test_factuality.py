@@ -51,3 +51,17 @@ def test_validator_not_installed(monkeypatch):
     monkeypatch.setattr(module, "_VALIDATOR_AVAILABLE", False)
     result = module.run_guard("sk-test", "anything", "gpt-4o-mini")
     assert result["install_hint"] == module.INSTALL_CMD
+
+
+def test_run_guard_api_error(monkeypatch):
+    monkeypatch.setattr(module, "_VALIDATOR_AVAILABLE", True)
+    mock_guard = MagicMock()
+    mock_guard.use.return_value = mock_guard
+    mock_guard.side_effect = Exception("401 Unauthorized")
+    with patch("demos.prompt.factuality.Guard") as MockGuard, \
+         patch("demos.prompt.factuality.ProvenanceLLM"), \
+         patch("demos.prompt.factuality.configure_openai"):
+        MockGuard.return_value = mock_guard
+        result = module.run_guard("bad-key", "hello", "gpt-4o-mini")
+    assert result["passed"] is False
+    assert "401" in result["error"]
