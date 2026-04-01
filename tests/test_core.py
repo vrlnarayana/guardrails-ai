@@ -1,16 +1,16 @@
 import os
-import pytest
 from core.llm import configure_openai
 from core.types import GuardResult, AgentStep, AgentResult
 
 
-def test_configure_openai_sets_env_var():
+def test_configure_openai_sets_env_var(monkeypatch):
+    monkeypatch.delenv("OPENAI_API_KEY", raising=False)
     configure_openai("sk-test-key")
     assert os.environ.get("OPENAI_API_KEY") == "sk-test-key"
 
 
-def test_configure_openai_empty_string_clears_key():
-    os.environ["OPENAI_API_KEY"] = "old-key"
+def test_configure_openai_empty_string_clears_key(monkeypatch):
+    monkeypatch.setenv("OPENAI_API_KEY", "old-key")
     configure_openai("")
     assert os.environ.get("OPENAI_API_KEY") == ""
 
