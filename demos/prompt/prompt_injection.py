@@ -68,11 +68,11 @@ def run_guard(api_key: str, prompt: str, model: str) -> GuardResult:
                 {"role": "user", "content": prompt},
             ],
         )
-        check: InjectionCheck = result.validated_output
-        injection_detected = bool(check.is_injection)
+        check = result.validated_output
+        injection_detected = bool(check["is_injection"])
         return GuardResult(
             passed=not injection_detected,
-            output=check.reason,
+            output=check["reason"],
             raw_output=str(result.raw_llm_output or ""),
             error=None,
             install_hint=None,

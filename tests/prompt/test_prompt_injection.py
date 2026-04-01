@@ -3,12 +3,8 @@ import demos.prompt.prompt_injection as module
 
 
 def _make_mock_guard(is_injection: bool, reason: str = "test reason", raw: str = "{}"):
-    check = MagicMock()
-    check.is_injection = is_injection
-    check.reason = reason
-
     mock_result = MagicMock()
-    mock_result.validated_output = check
+    mock_result.validated_output = {"is_injection": is_injection, "reason": reason}
     mock_result.raw_llm_output = raw
 
     mock_guard = MagicMock()

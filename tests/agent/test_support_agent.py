@@ -3,11 +3,8 @@ import demos.agent.support_agent as module
 
 
 def _mock_injection_guard(is_injection: bool, reason: str = "test"):
-    check = MagicMock()
-    check.is_injection = is_injection
-    check.reason = reason
     mock_result = MagicMock()
-    mock_result.validated_output = check
+    mock_result.validated_output = {"is_injection": is_injection, "reason": reason}
     mock_guard = MagicMock()
     mock_guard.return_value = mock_result
     return mock_guard

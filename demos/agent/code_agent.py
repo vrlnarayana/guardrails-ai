@@ -48,8 +48,8 @@ class InjectionCheck(BaseModel):
 # Step 1: Input guard — LLM classifier detects injection
 injection_guard = Guard.for_pydantic(InjectionCheck)
 check = injection_guard(model="gpt-4o-mini", messages=[...]).validated_output
-if check.is_injection:
-    raise ValueError(check.reason)
+if check["is_injection"]:
+    raise ValueError(check["reason"])
 
 # Step 2: Output guard — detect hardcoded secrets in generated code
 secrets_guard = Guard().use(SecretsPresent(on_fail="exception"))
@@ -95,10 +95,10 @@ def run_agent(api_key: str, query: str, model: str) -> AgentResult:
                 {"role": "user", "content": query},
             ],
         )
-        check: InjectionCheck = check_result.validated_output
-        step1_passed = not check.is_injection
+        check = check_result.validated_output
+        step1_passed = not check["is_injection"]
         if not step1_passed:
-            step1_error = check.reason
+            step1_error = check["reason"]
     except Exception as exc:
         step1_passed = False
         step1_error = str(exc)

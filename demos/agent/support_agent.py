@@ -85,10 +85,10 @@ def run_agent(api_key: str, query: str, model: str) -> AgentResult:
                 {"role": "user", "content": query},
             ],
         )
-        check: InjectionCheck = check_result.validated_output
-        step1_passed = not check.is_injection
+        check = check_result.validated_output
+        step1_passed = not check["is_injection"]
         if not step1_passed:
-            step1_error = check.reason
+            step1_error = check["reason"]
     except Exception as exc:
         step1_passed = False
         step1_error = str(exc)
