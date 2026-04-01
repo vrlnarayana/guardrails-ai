@@ -1,0 +1,53 @@
+{
+  "version": 1,
+  "validators": {
+    "guardrails/detect_pii": {
+      "import_path": "guardrails_grhub_detect_pii",
+      "exports": [
+        "DetectPII"
+      ],
+      "installed_at": "2026-04-01T09:28:29.220946+00:00",
+      "package_name": "guardrails-grhub-detect-pii"
+    },
+    "reflex/valid_python": {
+      "import_path": "reflex_grhub_valid_python",
+      "exports": [
+        "ValidPython"
+      ],
+      "installed_at": "2026-04-01T09:36:17.868394+00:00",
+      "package_name": "reflex-grhub-valid-python"
+    },
+    "guardrails/secrets_present": {
+      "import_path": "guardrails_grhub_secrets_present",
+      "exports": [
+        "SecretsPresent"
+      ],
+      "installed_at": "2026-04-01T09:36:21.289950+00:00",
+      "package_name": "guardrails-grhub-secrets-present"
+    },
+    "guardrails/valid_sql": {
+      "import_path": "guardrails_grhub_valid_sql",
+      "exports": [
+        "ValidSQL"
+      ],
+      "installed_at": "2026-04-01T09:36:24.137278+00:00",
+      "package_name": "guardrails-grhub-valid-sql"
+    },
+    "guardrails/toxic_language": {
+      "import_path": "guardrails_grhub_toxic_language",
+      "exports": [
+        "ToxicLanguage"
+      ],
+      "installed_at": "2026-04-01T09:45:00.000000+00:00",
+      "package_name": "guardrails-grhub-toxic-language"
+    },
+    "guardrails/provenance_llm": {
+      "import_path": "guardrails_grhub_provenance_llm",
+      "exports": [
+        "ProvenanceLLM"
+      ],
+      "installed_at": "2026-04-01T09:45:00.000000+00:00",
+      "package_name": "guardrails-grhub-provenance-llm"
+    }
+  }
+}
