@@ -1,5 +1,9 @@
 import streamlit as st
 from demos.prompt.pii_detection import render as render_pii
+from demos.prompt.prompt_injection import render as render_injection
+from demos.prompt.toxic_filter import render as render_toxic
+from demos.prompt.structured_output import render as render_structured
+from demos.prompt.factuality import render as render_factuality
 
 
 def render(api_key: str, model: str) -> None:
@@ -14,10 +18,10 @@ def render(api_key: str, model: str) -> None:
     with subtabs[0]:
         render_pii(api_key, model)
     with subtabs[1]:
-        st.info("Prompt Injection demo — coming in Task 5")
+        render_injection(api_key, model)
     with subtabs[2]:
-        st.info("Toxic Filter demo — coming in Task 6")
+        render_toxic(api_key, model)
     with subtabs[3]:
-        st.info("Structured Output demo — coming in Task 7")
+        render_structured(api_key, model)
     with subtabs[4]:
-        st.info("Factuality demo — coming in Task 8")
+        render_factuality(api_key, model)
