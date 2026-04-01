@@ -1,11 +1,12 @@
-import streamlit as st
-from dotenv import load_dotenv
 import os
 
-load_dotenv()
+import streamlit as st
+from dotenv import load_dotenv
 
 from tabs.prompt_guards import render as render_prompt_tab
 from tabs.agent_guards import render as render_agent_tab
+
+load_dotenv()
 
 st.set_page_config(
     page_title="Guardrails AI Demo",
