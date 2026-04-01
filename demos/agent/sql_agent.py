@@ -60,7 +60,6 @@ SQL_SYSTEM_PROMPT = (
 
 
 def run_agent(api_key: str, query: str, model: str) -> AgentResult:
-    configure_openai(api_key)
     steps = []
 
     # ── Step 1: Input guard (PII check on user query) ─────────────────────────
@@ -75,6 +74,8 @@ def run_agent(api_key: str, query: str, model: str) -> AgentResult:
             install_hint=PII_INSTALL,
         ))
         return AgentResult(steps=steps, final_output="Cannot run: validators not installed.", blocked=True)
+
+    configure_openai(api_key)
 
     try:
         pii_guard = Guard().use(DetectPII(

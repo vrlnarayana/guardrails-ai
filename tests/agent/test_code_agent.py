@@ -10,6 +10,7 @@ def _mock_guard(passed: bool, raw: str = "def hello(): return 'hi'"):
     mock_guard = MagicMock()
     mock_guard.use.return_value = mock_guard
     mock_guard.return_value = mock_result
+    mock_guard.validate.return_value = mock_result
     return mock_guard
 
 

@@ -32,14 +32,19 @@ def test_pii_detected_sanitises_and_continues(monkeypatch):
     """on_fail='fix' means PII is redacted and the pipeline continues — not blocked at step 1."""
     monkeypatch.setattr(module, "_PII_AVAILABLE", True)
     monkeypatch.setattr(module, "_SQL_AVAILABLE", True)
+
+    pii_guard = _mock_guard(False, "sanitised query")
+    sql_guard = _mock_guard(True, "SELECT * FROM orders")
+
     with patch("demos.agent.sql_agent.Guard") as MockGuard, \
          patch("demos.agent.sql_agent.DetectPII"), \
          patch("demos.agent.sql_agent.ValidSQL"), \
          patch("demos.agent.sql_agent.configure_openai"):
-        MockGuard.return_value = _mock_guard(False, "")
+        MockGuard.side_effect = [pii_guard, sql_guard]
         result = module.run_agent("sk-test", "Show orders for john@example.com", "gpt-4o-mini")
 
-    # Pipeline must NOT be blocked at step 1 — it continues with sanitised query
+    # Pipeline must NOT be blocked — PII fixed and pipeline continues
+    assert result["blocked"] is False
     assert len(result["steps"]) == 2
     assert result["steps"][0]["passed"] is False  # PII was detected (step shows warning)
     assert result["steps"][0]["install_hint"] is None  # not a missing-validator error

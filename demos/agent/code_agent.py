@@ -72,7 +72,6 @@ CODE_SYSTEM_PROMPT = (
 
 
 def run_agent(api_key: str, query: str, model: str) -> AgentResult:
-    configure_openai(api_key)
     steps = []
 
     # ── Step 1: Input guard (injection) ───────────────────────────────────────
@@ -88,6 +87,9 @@ def run_agent(api_key: str, query: str, model: str) -> AgentResult:
         ))
         return AgentResult(steps=steps, final_output="Cannot run: validators not installed.", blocked=True)
 
+    configure_openai(api_key)
+
+    step1_error: str | None = None
     try:
         input_guard = Guard().use(PromptInjectionDetector(on_fail="exception"), on="prompt")
         input_result = input_guard(
@@ -95,8 +97,9 @@ def run_agent(api_key: str, query: str, model: str) -> AgentResult:
             messages=[{"role": "user", "content": query}],
         )
         step1_passed = bool(input_result.validation_passed)
-    except Exception:
+    except Exception as exc:
         step1_passed = False
+        step1_error = str(exc)
 
     steps.append(AgentStep(
         name="Step 1: Input Guard",
@@ -104,7 +107,7 @@ def run_agent(api_key: str, query: str, model: str) -> AgentResult:
         passed=step1_passed,
         input_text=query,
         output_text=query if step1_passed else "",
-        error=None if step1_passed else "Prompt injection detected.",
+        error=None if step1_passed else step1_error,
         install_hint=None,
     ))
 
@@ -167,13 +170,10 @@ def run_agent(api_key: str, query: str, model: str) -> AgentResult:
 
     try:
         python_guard = Guard().use(ValidPython(on_fail="exception"))
-        python_result = python_guard(
-            model=model,
-            messages=[{"role": "user", "content": f"Validate this Python:\n{generated_code}"}],
-        )
+        python_result = python_guard.validate(generated_code)
         step3_passed = bool(python_result.validation_passed)
         final_code = str(python_result.validated_output or generated_code)
-    except Exception:
+    except Exception as exc:
         step3_passed = False
         final_code = generated_code
 
