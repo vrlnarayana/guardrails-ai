@@ -33,14 +33,49 @@ python3.11 -m pytest tests/prompt/test_pii_detection.py -v   # single test file
 - `core/` — shared types (`GuardResult`, `AgentResult`) and OpenAI config
 
 ## Key Patterns
-Each demo module exposes:
+
+### Prompt demos (`demos/prompt/`)
+Each module exposes:
 - `_VALIDATOR_AVAILABLE: bool` — False if hub validator not installed (set at import time)
 - `INSTALL_CMD: str` — hub install command to show the user
+- `GUARD_CODE: str` — example code shown in the UI expander
 - `build_guard() -> Guard` — creates the configured guard
 - `run_guard(api_key, prompt, model) -> GuardResult` — runs guard, never raises
 - `render(api_key, model) -> None` — Streamlit UI for this demo
 
-Agent demos expose `run_agent(api_key, query, model) -> AgentResult` instead of `run_guard`.
+### Agent demos (`demos/agent/`)
+Each module exposes:
+- `_INJECTION_AVAILABLE: bool` (or `_PII_AVAILABLE` etc.) — per-validator availability flags
+- `GUARD_CODE: str` — example pipeline code shown in the UI expander
+- `run_agent(api_key, query, model) -> AgentResult` — runs pipeline, never raises
+- `render(api_key, model) -> None` — Streamlit UI with step-trace display
+
+### Shared types (`core/types.py`)
+```python
+class GuardResult(TypedDict):
+    passed: bool
+    output: str
+    raw_output: str
+    error: Optional[str]
+    install_hint: Optional[str]
+
+class AgentStep(TypedDict):
+    name: str
+    guard_name: str
+    passed: bool
+    input_text: str
+    output_text: str
+    error: Optional[str]
+    install_hint: Optional[str]
+
+class AgentResult(TypedDict):
+    steps: List[AgentStep]
+    final_output: str
+    blocked: bool
+```
+
+### configure_openai call order
+`configure_openai(api_key)` must be called **after** the `_VALIDATOR_AVAILABLE` check — never as the first line. If validators are missing, return early without touching the environment.
 
 ## Validator Import Pattern
 Validators are imported at module level inside a try/except to gracefully handle missing installs:
@@ -52,3 +87,16 @@ except ImportError:
     DetectPII = None
     _VALIDATOR_AVAILABLE = False
 ```
+
+## Hub Validator Package Names
+The actual hub package names differ from the class names used in code:
+
+| Class | Hub package |
+|-------|-------------|
+| `DetectPII` | `hub://guardrails/detect_pii` |
+| `PromptInjectionDetector` | `hub://sainatha/prompt_injection_detector` |
+| `ToxicLanguage` | `hub://guardrails/toxic_language` |
+| `ProvenanceLLM` | `hub://guardrails/provenance_llm` |
+| `ValidSQL` | `hub://guardrails/valid_sql` |
+| `SecretsPresent` | `hub://guardrails/secrets_present` |
+| `ValidPython` | `hub://reflex/valid_python` |
