@@ -1,4 +1,5 @@
 import streamlit as st
+from demos.prompt.pii_detection import render as render_pii
 
 
 def render(api_key: str, model: str) -> None:
@@ -11,7 +12,7 @@ def render(api_key: str, model: str) -> None:
     ])
 
     with subtabs[0]:
-        st.info("PII Detection demo — coming in Task 4")
+        render_pii(api_key, model)
     with subtabs[1]:
         st.info("Prompt Injection demo — coming in Task 5")
     with subtabs[2]:
