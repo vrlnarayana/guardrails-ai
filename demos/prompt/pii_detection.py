@@ -25,7 +25,7 @@ from guardrails import Guard
 
 guard = Guard().use(
     DetectPII(
-        pii_entities=["EMAIL_ADDRESS", "PERSON"],
+        pii_entities=["EMAIL_ADDRESS", "PERSON", "PHONE_NUMBER"],
         on_fail="fix",
     )
 )
